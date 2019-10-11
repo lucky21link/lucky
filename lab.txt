@@ -1,0 +1,154 @@
+1 : 
+sudo apt-get update
+2: 
+install java
+3 : 
+java -version
+4: 
+echo "export JAVA_HOME=/usr" >> /etc/profile
+     or 
+sudo nano /etc/profile
+And append to the end
+
+ export JAVA_HOME=/usr
+
+5 : 
+source /etc/profile
+6 : Disable IPv6
+Apache Hadoop supports only IPv4, so let's disable IPv6 in the kernel parameters.
+Open the file /etc/sysctl.conf:
+
+
+sudo nano /etc/sysctl.conf
+
+And append to the end:
+
+# Disable IPv6
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+then reboot 
+
+
+sudo reboot
+
+Configure SSH keys
+7 : sudo addgroup hadoopgroup
+8 : sudo adduser -ingroup hadoopgroup hadoopuser
+9 : sudo apt install ssh
+10 : sudo systemctl enable ssh
+11: sudo systemctl start ssh
+
+
+Now we need to setup passwordless ssh, by means of crypto keys. In first place, we change to the hadoopuser account, then we create the key using RSA encryption and finally we authorize the key for the current user.
+
+12 : su - hadoopuser
+13 : ssh-keygen -t rsa -P ""
+14 : cat /home/hadoopuser/.ssh/id_rsa.pub >> /home/hadoopuser/.ssh/authorized_keys
+15:cd .ssh/
+16: ls 
+17 : chmod 600 ./authorized_keys
+18 : ls -l 
+19 : ssh-copy-id -i /home/hadoopuser/.ssh/id_rsa.pub localhost
+20 : ssh localhost 
+21: exit 
+22: cd ..
+23 : open google 
+		hadoop 
+		cp binary link 
+24 :wget paste the link 
+25 : ls 
+26 : tar -xvf hadoop-any version
+27 :sudo mv ./hadoop-{version}/usr/local
+28 : ln -sf /usr/local/hadoop-{version}/ /usr/local/hadoop
+29 : chown -R hadoopuser:hadoopgroup /usr/local/hadoop-{version}/
+
+
+Now we need to configure some environmental variables, with the hadoopuser account. Switch to that account and edit ~/.bashrc:
+
+30 : editor ~/.bashrc
+
+
+Append at the end:
+
+# Hadoop config
+export HADOOP_PREFIX=/usr/local/hadoop
+export HADOOP_HOME=/usr/local/hadoop
+export HADOOP_MAPRED_HOME=${HADOOP_HOME}
+export HADOOP_COMMON_HOME=${HADOOP_HOME}
+export HADOOP_HDFS_HOME=${HADOOP_HOME}
+export YARN_HOME=${HADOOP_HOME}
+export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
+# Native path
+export HADOOP_COMMON_LIB_NATIVE_DIR=${HADOOP_PREFIX}/lib/native
+export HADOOP_OPTS="-Djava.library.path=$HADOOP_PREFIX/lib/native"
+# Java path
+export JAVA_HOME="/usr"
+# OS path
+export PATH=$PATH:$HADOOP_HOME/bin:$JAVA_PATH/bin:$HADOOP_HOME/sbin
+31 : source ~/.bashrc
+32 : editor /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+
+       export JAVA_HOME="/usr"
+33 :
+
+ core-site.xml
+<configuration>
+<property>
+  <name>fs.default.name</name>
+    <value>hdfs://localhost:9000</value>
+</property>
+</configuration>
+34 : 
+hdfs-site.xml
+<configuration>
+<property>
+ <name>dfs.replication</name>
+ <value>1</value>
+</property>
+
+<property>
+  <name>dfs.name.dir</name>
+    <value>file:/usr/local/hadoop/hadoopdata/hdfs/namenode</value>
+</property>
+
+<property>
+  <name>dfs.data.dir</name>
+    <value>file:/usr/local/hadoop/hadoopdata/hdfs/datanode</value>
+</property>
+</configuration>
+35 : 
+ mapred-site.xml
+<configuration>
+ <property>
+  <name>mapreduce.framework.name</name>
+   <value>yarn</value>
+ </property>
+</configuration>
+36 :
+yarn-site.xml
+<configuration>
+ <property>
+  <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+ </property>
+</configuration>
+37 : 
+hdf namenode -format
+
+
+
+Search the output: if you can read a string like this:
+
+INFO common.Storage: Storage directory /usr/local/hadoop/hadoopdata/hdfs/namenode has been successfully formatted
+38 :start-dfs.sh
+39:start-yarn.sh
+40 :jps
+open chrome or firefox 
+localhost:8088
+
+
+
+
+
+
